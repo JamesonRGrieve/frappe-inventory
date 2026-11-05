@@ -112,7 +112,7 @@ queues a background job through Redis.
 
 ```
 cd ~/frappe/frappe-bench
-bench get-app https://github.com/JamesonRGrieve/zephyrex-inventory --branch main
+bench get-app https://github.com/JamesonRGrieve/frappe-inventory --branch main
 bench --site dev.localhost install-app inventory_scanner
 bench --site dev.localhost list-apps
 ```
