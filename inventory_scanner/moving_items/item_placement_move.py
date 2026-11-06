@@ -74,8 +74,11 @@ def move_item_placement(
 	source.check_permission("write")
 	destination.check_permission("write")
 
-	if source.item != destination.item:
+	if source.item_code != destination.item_code:
 		frappe.throw(_("Placements must contain the same item."))
+
+	if source.warehouse != destination.warehouse:
+		frappe.throw(_("Placements must be in the same warehouse."))
 
 	try:
 		new_source, new_destination = calculate_move(
@@ -95,7 +98,7 @@ def move_item_placement(
 
 	return {
 		"success": True,
-		"item": source.item,
+		"item": source.item_code,
 		"from_location": source.location,
 		"to_location": destination.location,
 		"source_quantity": float(new_source),
