@@ -56,6 +56,7 @@ doctype_js = {
 	"Warehouse": ["public/js/move.js"],
 	"Asset": ["public/js/install.js"],
 	"Asset Capitalization": ["public/js/parts.js"],
+	"Item": ["public/js/receive.js"],
 }
 doctype_list_js = {
 	"Warehouse": ["public/js/scan.js"],
