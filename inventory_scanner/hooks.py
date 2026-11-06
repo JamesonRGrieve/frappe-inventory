@@ -54,7 +54,7 @@ app_license = "AGPL-3.0-or-later"
 # include js in doctype views
 doctype_js = {
 	"Warehouse": ["public/js/move.js"],
-	"Asset": ["public/js/install.js"],
+	"Asset": ["public/js/install.js", "public/js/asset_buttons.js"],
 	"Asset Capitalization": ["public/js/parts.js"],
 	"Item": ["public/js/receive.js"],
 }
