@@ -1,19 +1,34 @@
-function ask_shelf_and_check_in(frm) {
-    let target = "";
-    try {
-        target = sessionStorage.getItem("inventory_scanner_checkin_target") || "";
-    } catch (e) {}
+function scan_shelf_into(dialog) {
+    new frappe.ui.Scanner({
+        dialog: true,
+        multiple: false,
+        on_scan(data) {
+            let text = data.decodedText || "";
+            if (text.startsWith("http://") || text.startsWith("https://")) {
+                text = text.split("/").pop();
+            }
+            dialog.set_value("location", decodeURIComponent(text));
+        },
+    });
+}
 
+function ask_shelf_and_check_in(frm) {
     const dialog = new frappe.ui.Dialog({
-        title:__("Check in {0}", [frm.doc.name]),
+        title: __("Check in {0}", [frm.doc.name]),
+        no_focus: true,
         fields: [
+            {
+                fieldname: "scan_shelf",
+                fieldtype: "Button",
+                label: __("Scan Shelf"),
+                click: () => scan_shelf_into(dialog),
+            },
             {
                 fieldname: "location",
                 fieldtype: "Link",
                 options: "Location",
                 label: __("Shelf"),
                 reqd: 1,
-                default: target, 
             },
         ],
         primary_action_label: __("Check In"),
@@ -24,12 +39,9 @@ function ask_shelf_and_check_in(frm) {
                     args: { asset_id: frm.doc.name, location: values.location },
                     freeze: true,
                 })
-                .then((r) => {
-                    try {
-                        sessionStorage.removeItem("inventory_scanner_checkin_target");
-                    } catch (e) {}
+                .then ((r) => {
                     dialog.hide();
-                    frappe.show_alert({ message: r.message.message, indicator: "green" });
+                    frappe.show_alert({message: r.message.message, indicator: "green"});
                     frm.reload_doc();
                 });
         },

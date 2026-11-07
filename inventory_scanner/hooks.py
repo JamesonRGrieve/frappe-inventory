@@ -58,7 +58,6 @@ doctype_js = {
 	"Asset Capitalization": ["public/js/parts.js"],
 	"Asset Repair": ["public/js/parts.js"],
 	"Item": ["public/js/receive.js"],
-	"Location": ["public/js/location_buttons.js"],
 }
 doctype_list_js = {
 	"Warehouse": ["public/js/scan.js"],
