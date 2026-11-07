@@ -58,3 +58,30 @@ frappe.ui.form.on("Asset Capitalization", {
     }
   }
 });
+
+frappe.ui.form.on("Asset Repair", {
+  refresh(frm) {
+    if (frm.doc.docstatus === 0) {
+      frm.add_custom_button(__("Repair Items"), () => {
+        new frappe.ui.Scanner({
+          dialog: true,
+          multiple: false,
+          on_scan(data) {
+            let scannedText = data.decodedText;
+            let finalItemCode = scannedText;
+
+            if (scannedText.startsWith("http://") || scannedText.startsWith("https://")) {
+                let parts = scannedText.split('/');
+                finalItemCode = parts[parts.length - 1];
+            }
+            finalItemCode = decodeURIComponent(finalItemCode);
+            let row = frm.add_child("stock_items");
+            row.item_code = finalItemCode;
+            frm.refresh_field("stock_items");
+            frm.script_manager.trigger("item_code", row.doctype, row.name);
+          },
+        });
+      });
+    }
+  }
+});
