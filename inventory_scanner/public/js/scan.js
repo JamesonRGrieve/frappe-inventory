@@ -55,4 +55,22 @@
 			});
 		},
 	};
+
+	const tree = frappe.treeview_settings["Warehouse"];
+	if (tree && !tree.scan_button_added) {
+		const original_onload = tree.onload;
+		tree.onload = (treeview) => {
+			if (original_onload) original_onload(treeview);
+			treeview.page.add_inner_button(__("Scan Warehouse"), () => {
+				new frappe.ui.Scanner({
+					dialog: true,
+					multiple: false,
+					on_scan(data) {
+						open_scanned_link(data.decodedText);
+					},
+				});
+			});
+		};
+		tree.scan_button_added = true;
+	}
 })();
