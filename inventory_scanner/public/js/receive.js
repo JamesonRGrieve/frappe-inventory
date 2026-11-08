@@ -30,6 +30,7 @@ frappe.ui.form.on("Item", {
               // Warehouse from Item Defaults
               if (warehouse) {
                 frappe.model.set_value(row.doctype, row.name, "warehouse", warehouse);
+                pr_frm.set_value("set_warehouse", warehouse);
               }
 
               // Supplier from Item Defaults, or the Item Supplier table
