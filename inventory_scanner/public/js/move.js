@@ -59,14 +59,5 @@ frappe.ui.form.on("Warehouse", {
 			});
 			d.show();
 		});
-
-		frm.add_custom_button(__("Move items in"), () => {
-			frappe.model.with_doctype("Stock Entry", () => {
-				const se = frappe.model.get_new_doc("Stock Entry");
-				se.stock_entry_type = "Material Transfer";
-				se.to_warehouse = frm.doc.name;
-				frappe.set_route("Form", "Stock Entry", se.name);
-			});
-		});
 	},
 });
