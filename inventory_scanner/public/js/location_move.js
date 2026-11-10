@@ -46,26 +46,11 @@ frappe.ui.form.on("Location", {
 					}
 					const source = sources[0];
 
-					const destinations = await frappe.db.get_list("Item Placement", {
-						filters: {
-							item_code: values.item_code,
-							location: values.to_location,
-							warehouse: source.warehouse,
-						},
-						fields: ["name"],
-					});
-					if (!destinations.length) {
-						frappe.msgprint(
-							__("{0} isn't on {1} yet.", [values.item_code, values.to_location]),
-						);
-						return;
-					}
-
 					frappe.call({
-						method: "inventory_scanner.moving_items.item_placement_move.move_item_placement",
+						method: "inventory_scanner.moving_items.item_placement_destination.move_to_location",
 						args: {
 							source_placement: source.name,
-							destination_placement: destinations[0].name,
+							to_location: values.to_location,
 							quantity: values.qty,
 						},
 						freeze: true,
