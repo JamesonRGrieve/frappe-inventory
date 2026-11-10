@@ -73,6 +73,7 @@ frappe.ui.form.on("Location", {
 						callback(r) {
 							if (!r.message) return;
 							d.hide();
+							frm.reload_doc();
 							frappe.show_alert({
 								message: __("Moved {0} × {1} to {2}", [
 									r.message.moved_quantity,
