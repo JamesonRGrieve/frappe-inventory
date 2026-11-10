@@ -35,7 +35,7 @@ app_license = "AGPL-3.0-or-later"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/inventory_scanner/css/inventory_scanner.css"
-# app_include_js = "/assets/inventory_scanner/js/inventory_scanner.js"
+app_include_js = "/assets/inventory_scanner/js/scan_helper.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/inventory_scanner/css/inventory_scanner.css"
