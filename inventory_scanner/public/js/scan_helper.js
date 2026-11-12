@@ -38,3 +38,23 @@ inventory_scanner.scan_and_open = () => {
         },
     });
 };
+
+// Add "Scan" button to every desk page for worker to scan a sticker
+// from wherever they are without opening a list or the Scan page first.
+inventory_scanner.add_scan_button = () => {
+    //prevents adding a second button if file runs more than once
+    if ($(".inventory-scanner-fab").length) return;
+
+    $(`<button class="btn btn-primary btn-lg inventory-scanner-fab">${__("Scan")}</button>`)
+        .css({
+            position: "fixed",
+            right: "24px",
+            bottom: "24px",
+            "z-index": 1000,
+            "border-radius": "999px",
+            "box-shadow": "var(--shadow-lg)",
+        })
+        .on("click", () => inventory_scanner.scan_and_open()).appendTo("body");
+};
+
+$(document).ready(() => inventory_scanner.add_scan_button());
