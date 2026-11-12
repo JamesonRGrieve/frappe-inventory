@@ -49,17 +49,50 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
         label: __("Shelf (for Check in)"),
         fieldtype: "Link",
         options: "Location",
+        change: () => show_shelf(shelf_field.get_value()),
     });
 
+
     const $body = $(`
-        <div style="padding: 24px 16px; max-width: 640px; margin: 0 auto;">
+        <div style="padding: 24px 16px; max-width: 640px; margin: 0 auto; text-align: center;">
             <p class="text-muted">${__("Pick an action, then scan labels. Camera stays open until you close it")}</p>
-            <button class="btn btn-primary btn-lg scan-start">${__("Scan")}</button>
-            <ul class="scan-results list-unstyled" style="margin-top: 24px;"></ul>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                <button class="btn btn-default btn-lg scan-shelf">${__("Scan Shelf")}</button>
+                <button class="btn btn-primary btn-lg scan-start">${__("Scan")}</button>
+            </div>
+            <p class="shelf-chosen text-muted" style="margin-top: 12px;"></p>
+            <ul class="scan-results list-unstyled" style="margin-top: 24px; text-align: left;"></ul>
         </div>
     `).appendTo(page.main);
     const $results = $body.find(".scan-results");
 
+    //Shows the chosen shelf next to the button, so a worker
+    // can see where the check ins will go without looking 
+    // up at the shelf too
+    const show_shelf = (name) => 
+        $body.find(".shelf-chosen").text(name ? __("Shelf: {0}", [name]) : "");
+
+    // scan a shelf sticker to fill the Shelf box instead of picking from a long list
+    $body.find(".scan-shelf").on("click", () => {
+        inventory_scanner.scan_for("Location", (name) => {
+            shelf_field.set_value(name);
+            show_shelf(name);
+        });
+    });
+
+    // Shelf controls only matter for actions that need a shelf (check in)
+    const update_for_action = () => {
+        const action = Object.values(actions).find((a) => a.label === action_field.get_value());
+        const needs_shelf = Boolean(action && action.needs_shelf);
+        $body.find(".scan-shelf").toggle(needs_shelf);
+        $body.find(".shelf-chose").toggle(needs_shelf);
+        shelf_field.$wrapper.toggle(needs_shelf);
+    };
+
+    action_field.$input.on("change", update_for_action);
+    update_for_action(); // sets the right starting state
+
+    
     // 1 scan per scan, pop up while camera is up and a list is on the page.
     const add_line = (text, ok) => {
         frappe.show_alert({ message: text, indicator: ok ? "green" : "red"}, 4);
@@ -69,9 +102,9 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
     // failed call comes back with server's message
     const reason = (err) => {
         try {
-        const raw = err._server_messages || (err.responseJSON && err.responseJSON._server_messages);
-        if (raw) return $("<div>").html(JSON.parse(JSON.parse(raw)[0]).message).text();
-    } catch (e) {
+            const raw = err._server_messages || (err.responseJSON && err.responseJSON._server_messages);
+            if (raw) return $("<div>").html(JSON.parse(JSON.parse(raw)[0]).message).text();
+        } catch (e) {
         // allow regular message
     }
     return __("Something went wrong.");

@@ -39,6 +39,38 @@ inventory_scanner.scan_and_open = () => {
     });
 };
 
+// Scans one label and hands back the name of the record on it only if
+// it is the kind of record asked for (ex: "Location").  Lets a page
+// fill in a field by scanning a sticker instead of picking it from a long list.
+inventory_scanner.scan_for = (doctype, on_name) => {
+    new frappe.ui.Scanner({
+        dialog: true,
+        mulitple: false,
+        on_scan(data) {
+            let url;
+            try {
+                url = new URL(data.decodedText);
+            } catch (e) {
+                frappe.msgprint(__("Scanned text is not a valid link"));
+                return;
+            }
+            if (url.origin !== window.location.origin) {
+                frappe.msgprint(__("QR code is not from this site"));
+                return;
+            }
+            // link ends in /<docttype-slug>/<record name>
+            const parts = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+            const name = parts[parts.length - 1];
+            const slug = doctype.toLowerCase().replace(/ /g, "-");
+            if (parts[parts.length -2] !== slug) {
+                frappe.msgprint(__("{0} is not a {1}", [name, doctype]));
+                return;
+            }
+            on_name(name);
+        },
+    });
+};
+
 // Add "Scan" button to every desk page for worker to scan a sticker
 // from wherever they are without opening a list or the Scan page first.
 inventory_scanner.add_scan_button = () => {
