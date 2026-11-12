@@ -5,29 +5,6 @@
 // own scanner.
 frappe.provide("inventory_scanner");
 
-// Confirmation beep and vibration on successful scan.  
-inventory_scanner.beep = () => {
-    try {
-        // Phones that support it will vibrate briefly (not iPhones).
-        if (navigator.vibrate) navigator.vibrate(100);
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
-        const oscillator = ctx.createOscillator();
-        const volume = ctx.createGain();
-        oscillator.frequency.value = 880; // beep type length
-        volume.gain.value = 0.1; // volume control
-        oscillator.connect(volume);
-        volume.connect(ctx.destination);
-        oscillator.start();
-        oscillator.stop(ctx.currentTime + 0.12);
-        oscillator.onended = () => ctx.close();
-    } catch (e) {
-        // ignore.  No sound for no scan
-    }
-};
-
 // Opens the record that a scanned QR code points to. The labels
 // hold a full link to the record, so scanning one is the same
 // following that link.
@@ -47,11 +24,7 @@ inventory_scanner.open_scanned_link = (text) => {
         frappe.msgprint(__("QR code isn't from this site"));
         return;
     }
-
-    // Confirm scan, then follow the link a moment later so page
-    // doesn't load mid beep.
-    inventory_scanner.beep();
-    setTimeout(() => window.location.assign(url.href), 150);
+    window.location.assign(url.href);
 };
 
 // opens camera scanner and once code is read, opens the record it
