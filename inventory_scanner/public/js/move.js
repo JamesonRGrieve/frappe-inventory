@@ -29,6 +29,29 @@ frappe.ui.form.on("Warehouse", {
 						reqd: 1,
 						get_query: () => ({ filters: { is_group: 0 } }),
 					},
+					{
+						fieldname: "scan_to_warehouse",
+						label: __("Scan Destination"),
+						fieldtype: "Button",
+						click() {
+							new frappe.ui.Scanner({
+								dialog: true,
+								multiple: false,
+								on_scan(data) {
+									let scannedText = data.decodedText;
+									let finalWarehouse = scannedText;
+
+									if (scannedText.startsWith("http://") || scannedText.startsWith("https://")) {
+										let parts = scannedText.split("/");
+										finalWarehouse = parts[parts.length - 1];
+									}
+									finalWarehouse = decodeURIComponent(finalWarehouse);
+
+									d.set_value("to_warehouse", finalWarehouse);
+								},
+							});
+						},
+					}
 				],
 				primary_action_label: __("Move"),
 				primary_action(values) {
