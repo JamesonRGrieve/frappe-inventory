@@ -12,7 +12,7 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
 
     const actions = {
         checkout: {
-            label: __("Checkout"),
+            label: __("Check Out"),
             doctype: "Asset",
             run: (asset_id) =>
                 frappe.call({
@@ -21,6 +21,17 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
                     silent: true, // no erro dialog
                 }),
         },
+        checkin: {
+            label: __("Check In"),
+            doctype: "Asset",
+            needs_shelf: true, // worker picks a shelf before scanning
+            run: (asset_id, shelf) =>
+                frappe.call({
+                    method: "inventory_scanner.moving_items.asset_checkin.checkin_asset",
+                    args: { asset_id, location: shelf },
+                    silent: true,
+                }),
+        }
     };
 
     const open_label = __("Open record");
@@ -31,6 +42,13 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
         fieldtype: "Select",
         options: labels.join("\n"),
         default: open_label,
+    });
+
+    const shelf_field = page.add_field({
+        fieldname: "shelf",
+        label: __("Shelf (for Check in)"),
+        fieldtype: "Link",
+        options: "Location",
     });
 
     const $body = $(`
@@ -59,7 +77,7 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
     return __("Something went wrong.");
 };
 
-    const handle_scan = async (text, action) => {
+    const handle_scan = async (text, action, shelf) => {
         let url;
         try {
             url = new URL(text);
@@ -80,7 +98,7 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
             return;
         }
         try{
-            const r = await action.run(name);
+            const r = await action.run(name, shelf);
             add_line(`${name}: ${r.message.message}`, true);
         } catch (err) {
             add_line(`${name}: ${reason(err)}`, false);
@@ -95,8 +113,15 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
         }
         const action = Object.values(actions).find((a) => a.label === chosen);
 
+        // Check in needs a shelf to put asset on, asks before camera opens
+        const shelf = shelf_field.get_value();
+        if (action.needs_shelf && !shelf) {
+            frappe.msgprint(__("Pick a shelf first, so each check in knows where to put the asset"));
+            return;
+        }
+
         // scanner reports every camera frame in multiple mode,
-        // skip a code we saw a momemnt ago (label is still in veiw).
+        // skip a code we saw a momemnt ago (label is still in view).
         let last_code = null;
         let last_seen = 0;
         new frappe.ui.Scanner({
@@ -107,7 +132,7 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
                 const repeat = data.decodedText == last_code && now - last_seen < 3000;
                 last_code = data.decodedText;
                 last_seen = now;
-                if (!repeat) handle_scan(data.decodedText, action);
+                if (!repeat) handle_scan(data.decodedText, action, shelf);
             },
         });
     });
