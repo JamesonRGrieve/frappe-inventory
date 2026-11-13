@@ -99,4 +99,15 @@ inventory_scanner.add_scan_button = () => {
         .on("click", () => inventory_scanner.scan_and_open()).appendTo("body");
 };
 
-$(document).ready(() => inventory_scanner.add_scan_button());
+// Scan page has its own Scan button, hide floating button here.
+inventory_scanner.update_scan_button = () => {
+    const on_scan_page = frappe.get_route()[0] === "scan";
+    $(".inventory-scanner-fab").toggle(!on_scan_page);
+};
+
+$(document).ready(() => {
+    inventory_scanner.add_scan_button();
+    // opens the Scan page directly, before route change fires
+    inventory_scanner.update_scan_button();
+    frappe.router.on("change", inventory_scanner.update_scan_button);
+});
