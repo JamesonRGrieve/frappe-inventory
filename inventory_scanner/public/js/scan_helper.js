@@ -5,26 +5,50 @@
 // own scanner.
 frappe.provide("inventory_scanner");
 
-// Opens the record that a scanned QR code points to. The labels
-// hold a full link to the record, so scanning one is the same
-// following that link.
-inventory_scanner.open_scanned_link = (text) => {
+// Reads a scanned code and says what it points to. Returns
+// { name. slug, url } for a link to a record on this site, 
+// or { error } with a message.  If doctype is passed, the
+// link must be to that kind of record.  Callers decide 
+// what to do next.
+inventory_scanner.parse_scan = (text, doctype) => {
     let url;
     try {
         url = new URL(text);
     } catch (e) {
-        // Anything that isn't a full URL.
-        frappe.msgprint(__("Scanned text is not a valid link"));
-        return;
+        // Anything that isn't full URL.
+        return { error: __("Scanned text is not a valid link") };
     }
-    // Only follow links that point at this site.  This stops a QR
-    // from somewhere else, such as a printed sticker from another
-    // system, from sending the user away.
+    // Only follow links that point at this site.  Won't allow
+    // another QR from somewhere else.
     if (url.origin !== window.location.origin) {
-        frappe.msgprint(__("QR code isn't from this site"));
+        return { error: __("QR code isn't from this site") };
+    }
+    // link ends in /<doctype-slug>/<record name>
+    let parts;
+    try {
+        parts = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+    } catch (e) {
+        // stray % in a label makes decodeURIComponent throw
+        return { error: __("Scanned link is not valid") };
+    }
+    const name = parts[parts.length - 1];
+    const slug = parts[parts.length - 2];
+    if (doctype && slug !== frappe.router.slug(doctype)) {
+        return { error: __("{0} is not a {1}", [name || text, doctype]) };
+    }
+    return { name, slug, url };
+};
+
+// Opens the record that a scanned QR code points to. The labels
+// hold a full link to the record, so scanning one is the same
+// following that link.
+inventory_scanner.open_scanned_link = (text) => {
+    const scan = inventory_scanner.parse_scan(text);
+    if (scan.error) {
+        frappe.msgprint(scan.error);
         return;
     }
-    window.location.assign(url.href);
+    window.location.assign(scan.url.href);
 };
 
 // opens camera scanner and once code is read, opens the record it
@@ -45,28 +69,14 @@ inventory_scanner.scan_and_open = () => {
 inventory_scanner.scan_for = (doctype, on_name) => {
     new frappe.ui.Scanner({
         dialog: true,
-        mulitple: false,
+        multiple: false,
         on_scan(data) {
-            let url;
-            try {
-                url = new URL(data.decodedText);
-            } catch (e) {
-                frappe.msgprint(__("Scanned text is not a valid link"));
+            const scan = inventory_scanner.parse_scan(data.decodedText, doctype);
+            if (scan.error) {
+                frappe.msgprint(scan.error);
                 return;
             }
-            if (url.origin !== window.location.origin) {
-                frappe.msgprint(__("QR code is not from this site"));
-                return;
-            }
-            // link ends in /<docttype-slug>/<record name>
-            const parts = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
-            const name = parts[parts.length - 1];
-            const slug = doctype.toLowerCase().replace(/ /g, "-");
-            if (parts[parts.length -2] !== slug) {
-                frappe.msgprint(__("{0} is not a {1}", [name, doctype]));
-                return;
-            }
-            on_name(name);
+            on_name(scan.name);
         },
     });
 };

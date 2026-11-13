@@ -66,7 +66,7 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
     `).appendTo(page.main);
     const $results = $body.find(".scan-results");
 
-    //Shows the chosen shelf next to the button, so a worker
+    // Shows the chosen shelf next to the button, so a worker
     // can see where the check ins will go without looking 
     // up at the shelf too
     const show_shelf = (name) => 
@@ -85,7 +85,7 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
         const action = Object.values(actions).find((a) => a.label === action_field.get_value());
         const needs_shelf = Boolean(action && action.needs_shelf);
         $body.find(".scan-shelf").toggle(needs_shelf);
-        $body.find(".shelf-chose").toggle(needs_shelf);
+        $body.find(".shelf-chosen").toggle(needs_shelf);
         shelf_field.$wrapper.toggle(needs_shelf);
     };
 
@@ -99,38 +99,25 @@ frappe.pages["scan"].on_page_load = function (wrapper) {
         $(`<li>${ok ? "✓" : "✗"} ${frappe.utils.escape_html(text)}</li>`).prependTo($results);
     };
 
-    // failed call comes back with server's message
+        // failed call comes back with server's message
     const reason = (err) => {
         try {
             const raw = err._server_messages || (err.responseJSON && err.responseJSON._server_messages);
             if (raw) return $("<div>").html(JSON.parse(JSON.parse(raw)[0]).message).text();
         } catch (e) {
-        // allow regular message
-    }
-    return __("Something went wrong.");
-};
+            // allow regular message
+        }
+        return __("Something went wrong.");
+    };
 
     const handle_scan = async (text, action, shelf) => {
-        let url;
+        const scan = inventory_scanner.parse_scan(text, action.doctype);
+        if (scan.error) {
+            add_line(scan.error, false);
+            return;
+        }
+        const name = scan.name;
         try {
-            url = new URL(text);
-        } catch (e) {
-            add_line(__("Scanned text is not a valid link"), false);
-            return;
-        }
-        if (url.origin !== window.location.origin) {
-            add_line(__("QR code isn't from this site: {0}", [text]), false);
-            return;
-        }
-        // link ends in /<doctype-slug>/<record name>
-        const parts = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
-        const name = parts[parts.length -1];
-        const slug = parts[parts.length -2];
-        if (slug !== action.doctype.toLowerCase().replace(/ /g, "-")) {
-            add_line(__("{0} is not a {1}", [name, action.doctype]), false);
-            return;
-        }
-        try{
             const r = await action.run(name, shelf);
             add_line(`${name}: ${r.message.message}`, true);
         } catch (err) {
