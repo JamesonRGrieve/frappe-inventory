@@ -1,0 +1,16 @@
+{
+    "creation": "2026-11-11 16:30:00.000000",
+    "docstatus": 0,
+    "doctype": "Page",
+    "idx": 0,
+    "modified": "2026-11-11 16:30:00.000000",
+    "modified_by": "Administrator",
+    "module": "Inventory Scanner",
+    "owner": "Administrator",
+    "name": "scan",
+    "page_name": "scan",
+    "roles": [],
+    "standard": "Yes",
+    "system_page": 0,
+    "title": "Scan"
+}

@@ -1,76 +1,54 @@
+// Adds a Scan button to the Warehouse, Item, Asset and 
+// Location lists and to the Warehouse and Location
+// tree.  All buttons will open the scanner.
 (() => {
-	const open_scanned_link = (text) => {
-		let url;
-		try {
-			url = new URL(text);
-		} catch (e) {
-			frappe.msgprint(__("Scanned text is not a valid link."));
-			return;
-		}
-		if (url.origin !== window.location.origin) {
-			frappe.msgprint(__("QR code isn't from this site."));
-			return;
-		}
-		window.location.assign(url.href);
+
+	// Loop.  Each doctype keeps ERPNext's own list settings
+	// (status badges, filters) since we extend them 
+	// instead of replacing the whole object.
+	const list_labels = {
+		Warehouse: __("Scan Warehouse"),
+		Item: __("Scan Item"),
+		Asset: __("Scan Asset"),
+		Location: __("Scan Location"),
 	};
 
-	frappe.listview_settings["Warehouse"] = {
-		onload(listview) {
-			listview.page.add_inner_button(__("Scan Warehouse"), () => {
-				new frappe.ui.Scanner({
-					dialog: true,
-					multiple: false,
-					on_scan(data) {
-						open_scanned_link(data.decodedText);
-					},
+	Object.entries(list_labels).forEach(([doctype, label]) => {
+		const existing = frappe.listview_settings[doctype] || {};
+		if (existing.scan_button_added) return;
+		frappe.listview_settings[doctype] = {
+			...existing,
+			onload(listview) {
+				if (existing.onload) existing.onload(listview);
+				listview.page.add_inner_button(label, () => {
+					inventory_scanner.scan_and_open();
 				});
-			});
-		},
-	};
-
-	frappe.listview_settings["Item"] = {
-		onload(listview) {
-			listview.page.add_inner_button(__("Scan Item"), () => {
-				new frappe.ui.Scanner({
-					dialog: true,
-					multiple: false,
-					on_scan(data) {
-						open_scanned_link(data.decodedText);
-					},
-				});
-			});
-		},
-	};
-
-	frappe.listview_settings["Asset"] = {
-		onload(listview) {
-			listview.page.add_inner_button(__("Scan Asset"), () => {
-				new frappe.ui.Scanner({
-					dialog: true,
-					multiple: false,
-					on_scan(data) {
-						open_scanned_link(data.decodedText);
-					},
-				});
-			});
-		},
-	};
-
-	const tree = frappe.treeview_settings["Warehouse"];
-	if (tree && !tree.scan_button_added) {
-		const original_onload = tree.onload;
-		tree.onload = (treeview) => {
-			if (original_onload) original_onload(treeview);
-			treeview.page.add_inner_button(__("Scan Warehouse"), () => {
-				new frappe.ui.Scanner({
-					dialog: true,
-					multiple: false,
-					on_scan(data) {
-						open_scanned_link(data.decodedText);
-					},
-				});
-			});
+			},
 		};
-		tree.scan_button_added = true;
+	});
+
+	// Warehouse and Location open on tree view by default, so it needs a button
+	// there too.  We wrap the existing onload (ERPNext may have its own)
+	// and set scan_button_added so the button isn't added twice if
+	// this runs again.
+	const tree_labels = {
+		Warehouse: __("Scan Warehouse"),
+		Location: __("Scan Location"),
+	};
+
+	for (const [doctype, label] of Object.entries(tree_labels)) {
+		const tree = frappe.treeview_settings[doctype];
+		if (tree && !tree.scan_button_added) {
+			const original_onload = tree.onload;
+			tree.onload = (treeview) => {
+				if (original_onload) original_onload(treeview);
+				const $btn = treeview.page.add_inner_button(label, () => {
+					inventory_scanner.scan_and_open();
+				});
+				// only move the button if add_inner_button returned it
+				if ($btn && $btn.length) $btn.parent().prepend($btn);
+			};
+			tree.scan_button_added = true;
+		}
 	}
 })();
