@@ -1,0 +1,14 @@
+[
+ {
+  "doctype": "Custom Field",
+  "dt": "Purchase Receipt Item",
+  "fieldname": "custom_shelf_location",
+  "fieldtype": "Link",
+  "label": "Shelf Location",
+  "options": "Location",
+  "insert_after": "warehouse",
+  "in_list_view": 1,
+  "module": "Inventory Scanner",
+  "name": "Purchase Receipt Item-custom_shelf_location"
+ }
+]
