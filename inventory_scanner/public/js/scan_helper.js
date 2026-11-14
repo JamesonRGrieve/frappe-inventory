@@ -6,7 +6,7 @@
 frappe.provide("inventory_scanner");
 
 // Reads a scanned code and says what it points to. Returns
-// { name. slug, url } for a link to a record on this site, 
+// { name, slug, url } for a link to a record on this site, 
 // or { error } with a message.  If doctype is passed, the
 // link must be to that kind of record.  Callers decide 
 // what to do next.
@@ -15,7 +15,7 @@ inventory_scanner.parse_scan = (text, doctype) => {
     try {
         url = new URL(text);
     } catch (e) {
-        // Anything that isn't full URL.
+        // Anything that isn't a full URL.
         return { error: __("Scanned text is not a valid link") };
     }
     // Only follow links that point at this site.  Won't allow
@@ -34,7 +34,7 @@ inventory_scanner.parse_scan = (text, doctype) => {
     const name = parts[parts.length - 1];
     const slug = parts[parts.length - 2];
     if (doctype && slug !== frappe.router.slug(doctype)) {
-        return { error: __("{0} is not a {1}", [name || text, doctype]) };
+        return { error: __("Wrong kind of label: {0} (expected {1})", [name || text, doctype]) };
     }
     return { name, slug, url };
 };
@@ -101,7 +101,10 @@ inventory_scanner.add_scan_button = () => {
 
 // Scan page has its own Scan button, hide floating button here.
 inventory_scanner.update_scan_button = () => {
-    const on_scan_page = frappe.get_route()[0] === "scan";
+    // route is null until the router has run once (fresh page load) so default
+    // to an empty list
+    const route = frappe.get_route() || [];
+    const on_scan_page = route[0] === "scan";
     $(".inventory-scanner-fab").toggle(!on_scan_page);
 };
 
