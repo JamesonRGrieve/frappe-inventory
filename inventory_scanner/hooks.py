@@ -61,10 +61,10 @@ doctype_js = {
 	"Item": ["public/js/receive.js"],
 }
 doctype_list_js = {
-	"Warehouse": ["public/js/scan.js"],
-	"Item": ["public/js/scan.js"],
-	"Asset": ["public/js/scan.js"],
-	"Location": ["public/js/scan.js"],
+	"Warehouse": ["public/js/scan.js", "public/js/label_sheet.js"],
+	"Item": ["public/js/scan.js", "public/js/label_sheet.js"],
+	"Asset": ["public/js/scan.js", "public/js/label_sheet.js"],
+	"Location": ["public/js/scan.js", "public/js/label_sheet.js"],
 }
 
 doctype_tree_js = {
