@@ -181,6 +181,7 @@ jinja = {"methods": ["inventory_scanner.labels.qr_data_uri"]}
 doc_events = {
 	"Purchase Receipt": {
 		"on_submit": "inventory_scanner.moving_items.purchase_receipt_events.on_purchase_receipt_submit",
+		"on_cancel": "inventory_scanner.moving_items.purchase_receipt_cancel.on_purchase_receipt_cancel",
 	},
 }
 
