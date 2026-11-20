@@ -61,10 +61,10 @@ doctype_js = {
 	"Item": ["public/js/receive.js"],
 }
 doctype_list_js = {
-	"Warehouse": ["public/js/scan.js"],
-	"Item": ["public/js/scan.js"],
-	"Asset": ["public/js/scan.js"],
-	"Location": ["public/js/scan.js"],
+	"Warehouse": ["public/js/scan.js", "public/js/label_sheet.js"],
+	"Item": ["public/js/scan.js", "public/js/label_sheet.js"],
+	"Asset": ["public/js/scan.js", "public/js/label_sheet.js"],
+	"Location": ["public/js/scan.js", "public/js/label_sheet.js"],
 }
 
 doctype_tree_js = {
@@ -181,6 +181,7 @@ jinja = {"methods": ["inventory_scanner.labels.qr_data_uri"]}
 doc_events = {
 	"Purchase Receipt": {
 		"on_submit": "inventory_scanner.moving_items.purchase_receipt_events.on_purchase_receipt_submit",
+		"on_cancel": "inventory_scanner.moving_items.purchase_receipt_cancel.on_purchase_receipt_cancel",
 	},
 }
 
